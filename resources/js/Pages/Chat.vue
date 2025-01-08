@@ -37,6 +37,7 @@ export default {
         };
     },
     methods: {
+        
         drawGraph() {
             const svg = d3.select(this.$refs.svg);
             svg.selectAll('*').remove(); // Clear the SVG before re-rendering
@@ -110,6 +111,7 @@ export default {
                     .on('end', dragended);
             }
         },
+
         async sendMessage() {
             if (!this.message) return;
 
@@ -118,11 +120,12 @@ export default {
             this.nodes.push(userNode);
 
             // Send message to Laravel API
-            const response = await fetch('/api/chat', {
+            const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: this.message }),
             });
+            
             const data = await response.json();
 
             // Add bot response as a node
