@@ -15,11 +15,12 @@ class OllamaController extends Controller
             'model' => 'string',
         ]);
 
-        $response = Http::post('http://localhost:11434/api/generate', [
+        $ollamaBaseUrl = env('OLLAMA_BASE_URL');
+
+        $response = Http::post("{$ollamaBaseUrl}/api/generate", [
             'model' => $validated['model'] ?? 'llama3.2',
             'prompt' => $validated['prompt'],
             'stream' => false,
-
         ]);
 
         return response()->json($response->json());
