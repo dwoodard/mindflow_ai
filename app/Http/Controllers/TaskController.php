@@ -20,7 +20,18 @@ class TaskController extends Controller
         // Paginate the results
         $paginatedTasks = $tasks->orderBy('created_at', 'desc')->paginate(10);
 
-        return response()->json($paginatedTasks);
+        return response()->json([
+            'data' => $paginatedTasks->items(),
+            'links' => [
+                'first' => $paginatedTasks->url(1),
+                'last' => $paginatedTasks->url($paginatedTasks->lastPage()),
+                'prev' => $paginatedTasks->previousPageUrl(),
+                'next' => $paginatedTasks->nextPageUrl(),
+            ],
+            'meta' => [
+
+            ],
+        ]);
     }
 
     // Store a new task
