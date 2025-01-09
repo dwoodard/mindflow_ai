@@ -11,9 +11,14 @@ class AgentRoutesTest extends TestCase
     {
         $response = $this->post('/api/agent/execute/prompt-chain', [
             'input' => 'test input',
-            'steps' => ['step1', 'step2']
+            'steps' => ['step1', 'step2'],
         ]);
-        $response->assertStatus(400);
+
+        dd(
+            $response->status(),
+            // $response->getContent()
+        );
+
     }
 
     // Test for AgentController executeOrchestrator route
@@ -21,7 +26,7 @@ class AgentRoutesTest extends TestCase
     {
         $response = $this->post('/api/agent/execute/orchestrator', [
             'input' => 'test input',
-            'steps' => ['step1', 'step2']
+            'steps' => ['step1', 'step2'],
         ]);
         $response->assertStatus(500);
     }

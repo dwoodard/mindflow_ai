@@ -26,24 +26,4 @@ Route::prefix('agent')->group(function () {
         ->name('agent.execute.orchestrator');
 });
 
-Route::prefix('tasks')->group(function () {
-    // Create a new task
-    Route::post('/', [TaskController::class, 'store'])
-        ->name('tasks.store');
-
-    // Get the status of a task
-    Route::get('{task}', [TaskController::class, 'show'])
-        ->name('tasks.show');
-
-    // List all tasks
-    Route::get('/', [TaskController::class, 'index'])
-        ->name('tasks.index');
-
-    // Update a task
-    Route::put('{task}', [TaskController::class, 'update'])
-        ->name('tasks.update');
-
-    // Delete a task
-    Route::delete('{task}', [TaskController::class, 'destroy'])
-        ->name('tasks.destroy');
-});
+Route::resource('tasks', TaskController::class);
