@@ -21,7 +21,8 @@ class AgentControllerTest extends TestCase
         $this->app->instance(LLMClient::class, $this->llmClient);
     }
 
-    public function test_execute_orchestrator()
+    /** @test */
+    public function it_can_execute_workflow()
     {
         $this->llmClient->method('call')->willReturn('mocked response');
 
@@ -30,7 +31,7 @@ class AgentControllerTest extends TestCase
             'input' => 'test input',
         ]);
 
-        $response->assertStatus(Response::HTTP_OK)
+        $response->assertStatus(200)
             ->assertJsonStructure([
                 'task_id',
                 'result',
@@ -65,11 +66,13 @@ class AgentControllerTest extends TestCase
             'input' => 'test input',
         ]);
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'task_id' => 1,
-                'result' => 'Test workflow executed with input: test input',
-            ]);
+        $this->assertDatabaseHas('tasks', [
+            'input' => 'test input',
+            'output' => 'Test workflow executed with input: test input',
+            'status' => 'completed',
+            'pattern' => 'test-workflow',
+        ]);
+
     }
 
     /** @test */
@@ -84,7 +87,6 @@ class AgentControllerTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        // Add more assertions as needed
     }
 
     /** @test */

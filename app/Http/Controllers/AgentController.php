@@ -35,33 +35,24 @@ class AgentController extends Controller
             case 'orchestrator':
                 return $this->executeOrchestrator($input, $options);
 
+            case 'test-workflow':
+                return $this->executeTestWorkflow($input, $options);
+
             default:
                 return $this->unsupportedWorkflowResponse($workflow);
         }
     }
 
     /**
-     * Execute the PromptChain workflow.
+     * Execute a PromptChain workflow.
      */
-    protected function executePromptChain(string $input, array $steps, array $options)
+    public function executePromptChain(string $input, array $steps, array $options)
     {
         $promptChain = new PromptChain($this->llmClient);
 
-        foreach ($steps as $step) {
-            if (!isset($step['prompt'])) {
-                return response()->json([
-                    'error' => "Each step must include a 'prompt' key.",
-                ], 400);
-            }
+        $result = $promptChain->execute($input, $steps, $options);
 
-            $promptChain->addStep(function ($client, $currentInput) use ($step, $options) {
-                $preparedPrompt = str_replace('{input}', $currentInput, $step['prompt']);
-                return $client->call($preparedPrompt, $options);
-            });
-        }
-
-        $result = $promptChain->execute($input);
-
+        // Log or save the task
         $task = $this->storeTask($input, $result, 'prompt-chain');
 
         return response()->json([
@@ -71,18 +62,42 @@ class AgentController extends Controller
     }
 
     /**
-     * Execute the Orchestrator workflow.
+     * Execute an Orchestrator workflow.
      */
-    protected function executeOrchestrator(string $input, array $options)
+    public function executeOrchestrator(Request $request)
     {
+        $validated = $request->validate([
+            'input' => 'required|string',
+            'options' => 'array',
+        ]);
+
+        $input = $validated['input'];
+        $options = $validated['options'] ?? [];
+
         $orchestrator = new Orchestrator($this->llmClient);
+
         $result = $orchestrator->execute($input, $options);
 
+        // Log or save the task
         $task = $this->storeTask($input, $result, 'orchestrator');
 
         return response()->json([
             'task_id' => $task->id,
             'result' => $result,
+        ]);
+    }
+
+    /**
+     * Execute the TestWorkflow.
+     */
+    public function executeTestWorkflow(string $input, array $options)
+    {
+        $output = "Test workflow executed with input: $input";
+        $task = $this->storeTask($input, $output, 'test-workflow');
+
+        return response()->json([
+            'task_id' => $task->id,
+            'result' => $output,
         ]);
     }
 

@@ -18,8 +18,8 @@ class Task extends Model
         'pattern', // E.g., 'PromptChain', 'Router'
     ];
 
-    public function workflow()
-    {
-        return $this->belongsTo(Workflow::class);
-    }
+    // public function workflow()
+    // {
+    //     return $this->belongsTo(Workflow::class);
+    // }
 }

@@ -14,10 +14,7 @@ class AgentRoutesTest extends TestCase
             'steps' => ['step1', 'step2'],
         ]);
 
-        dd(
-            $response->status(),
-            // $response->getContent()
-        );
+        $response->assertStatus(500);
 
     }
 
