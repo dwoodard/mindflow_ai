@@ -54,6 +54,13 @@ class TaskController extends Controller
         return response()->json($task);
     }
 
+    // Update a task
+    public function update(Request $request, Task $task)
+    {
+        $task->update($request->all());
+        return response()->json($task, 200);
+    }
+
     // Delete a specific task
     public function destroy(Task $task)
     {
