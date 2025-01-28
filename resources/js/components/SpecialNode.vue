@@ -6,6 +6,10 @@ const props = defineProps({
   position: {
     type: Object,
     required: true,
+  },
+  data: {
+    type: Object,
+    default: () => ({ label: 'Fallback Label' }),
   }
 })
 
@@ -15,7 +19,7 @@ const y = computed(() => `${Math.round(props.position.y)}px`)
 
 <template>
   <div class="vue-flow__node-default">
-    <div>{{ data.label }}</div>
+    <h3>{{ props.data?.label || 'Fallback Label' }}</h3>
 
     <div>
       {x} {y}

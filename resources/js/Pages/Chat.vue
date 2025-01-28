@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { VueFlow } from '@vue-flow/core'
 
 // these components are only shown as examples of how to use a custom node or edge
@@ -7,82 +7,122 @@ import { VueFlow } from '@vue-flow/core'
 import SpecialNode from '@/components/SpecialNode.vue'
 import SpecialEdge from '@/components/SpecialEdge.vue'
 
+//add message as a reactive variable
+const message = ref('think of idea of a new business')
+
 
 // these are our nodes
 const nodes = ref([
-  // an input node, specified by using `type: 'input'`
-  { 
-    id: '1',
-    type: 'input', 
-    position: { x: 250, y: 5 },
-    // all nodes can have a data object containing any data you want to pass to the node
-    // a label can property can be used for default nodes
-    data: { label: 'Node 1' },
-  },
-
-  // default node, you can omit `type: 'default'` as it's the fallback type
-  { 
-    id: '2', 
-    position: { x: 100, y: 100 },
-    data: { label: 'Node 2' },
-  },
-
-  // An output node, specified by using `type: 'output'`
-  { 
-    id: '3', 
-    type: 'output', 
-    position: { x: 400, y: 200 },
-    data: { label: 'Node 3' },
-  },
-
-  // this is a custom node
-  // we set it by using a custom type name we choose, in this example `special`
-  // the name can be freely chosen, there are no restrictions as long as it's a string
-  {
-    id: '4',
-    type: 'special', // <-- this is the custom node type name
-    position: { x: 400, y: 200 },
-    data: {
-      label: 'Node 4',
-      hello: 'world',
-    },
-  },
+   
 ])
 
 // these are our edges
 const edges = ref([
   // default bezier edge
   // consists of an edge id, source node id and target node id
-  { 
-    id: 'e1->2',
-    source: '1', 
-    target: '2',
-  },
-
-  // set `animated: true` to create an animated edge path
-  { 
-    id: 'e2->3',
-    source: '2', 
-    target: '3', 
-    animated: true,
-  },
-
-  // a custom edge, specified by using a custom type name
-  // we choose `type: 'special'` for this example
-  {
-    id: 'e3->4',
-    type: 'special',
-    source: '3',
-    target: '4',
-
-    // all edges can have a data object containing any data you want to pass to the edge
-    data: {
-      hello: 'world',
-    }
-  },
+  
 ])
-</script>
 
+// id counter for nodes
+// calculate the number of nodes and edges
+const nodeCount = computed(() => nodes.value.length);
+const edgeCount = computed(() => edges.value.length);
+const idCounter = ref(nodeCount.value + edgeCount.value);
+
+// send message function
+const sendMessage = async () => {
+    if (!message.value) return;
+
+    // Add user message as a node
+    const userNode = { id: `node-${idCounter.value++}`, type: 'default', position: { x: 100, y: 100 }, data: { label: message.value } };
+    nodes.value.push(userNode);
+
+        const system = `
+        You are a JSON response generator specialized in creating flowchart data for Vue Flow. 
+
+        Your task is to return flowchart data in a specific JSON format with two main properties: "nodes" and "edges". 
+
+        Each "node" in the "nodes" array must have:
+        - "id": A unique identifier (string).
+        - "type": The type of the node (e.g., "input", "default", or "output"). If not specified, default to "default".
+        - "position": An object with "x" and "y" coordinates (e.g., { "x": 100, "y": 200 }).
+        - "data": An object containing any data for the node. Include a "label" property for the node's label.
+
+        Each "edge" in the "edges" array must have:
+        - "id": A unique identifier (string).
+        - "source": The ID of the source node (string).
+        - "target": The ID of the target node (string).
+        - "animated" (optional): A boolean to indicate if the edge should be animated. Default is false.
+
+        Your response **must only be in JSON**. Do not include any explanations or extra text.
+
+        Example Response:
+        {
+            "nodes": [
+                { "id": "1", "type": "input", "position": { "x": 100, "y": 100 }, "data": { "label": "Start" } },
+                { "id": "2", "type": "default", "position": { "x": 200, "y": 200 }, "data": { "label": "Process" } },
+                { "id": "3", "type": "output", "position": { "x": 300, "y": 300 }, "data": { "label": "End" } }
+            ],
+            "edges": [
+                { "id": "e1->2", "source": "1", "target": "2" },
+                { "id": "e2->3", "source": "2", "target": "3", "animated": true }
+            ]
+        } `;
+
+        const jsonSchema = `
+        {
+            "nodes": [
+                {
+                    "id": "1",
+                    "type": "input",
+                    "position": { "x": 100, "y": 100 },
+                    "data": { "label": "Start" }
+                },
+                {
+                    "id": "2",
+                    "type": "default",
+                    "position": { "x": 200, "y": 200 },
+                    "data": { "label": "Process" }
+                },
+                {
+                    "id": "3",
+                    "type": "output",
+                    "position": { "x": 300, "y": 300, "width": 400 },
+                    "data": { "label": "End" }
+                }
+            ],
+            "edges": [
+                { "id": "e1->2", "source": "1", "target": "2" },
+                { "id": "e2->3", "source": "2", "target": "3", "animated": true }
+            ]
+        } `;
+
+    
+    // Send message to Laravel API
+    const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            prompt: message.value,
+            system: system,
+            format: jsonSchema
+        
+        }),
+    });
+    const data = await response.json();
+
+    // Add bot response as a node
+    const botNode = { id: `node-${idCounter.value++}`, type: 'default', position: { x: 400, y: 200 }, data: { label: data.response } };
+    nodes.value.push(botNode);
+
+    // Add a link between the user message and bot response
+    edges.value.push({ id: `e${userNode.id}->${botNode.id}`, source: userNode.id, target: botNode.id });
+
+    message.value = '';
+}
+
+
+</script>
 
 <template>
     <div class="flex flex-col h-screen ">
